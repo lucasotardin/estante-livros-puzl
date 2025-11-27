@@ -1,0 +1,41 @@
+### ROTA DE TESTE SIMPLES (GET /api/teste)
+GET http://localhost/teste
+
+
+### 1. Criar Livro (POST) - Tenta este primeiro!
+POST http://localhost/livros
+Content-Type: application/json
+
+{
+    "nome": "2010",
+    "autor": "Leonel Caldela",
+    "categoria": "Fantasia Medieval",
+    "codigo": "FANTP001",
+    "tipo": "fisico",
+    "tamanho": "300g"
+}
+
+### 2. Listar Livros (GET)
+GET http://localhost/livros
+
+### 3. Visualizar Livro Único (GET) - **Mude o ID**
+GET http://localhost/livros/1
+
+### 4. Atualizar Livro (PUT/PATCH) - **Mude o ID**
+PUT http://localhost/livros/1
+Content-Type: application/json
+
+{
+    "nome": "1984: Edição de Bolso",
+    "autor": "George Orwell",
+    "categoria": "Ficção Distópica",
+    "codigo": "DISTOP001", 
+    "tipo": "fisico",
+    "tamanho": "150g"
+}
+
+### 5. Deletar Livro (DELETE) - **Mude o ID**
+DELETE http://localhost/livros/1
+
+### 6. Relatório (GET)
+GET http://localhost/relatorio/livros?categoria=Ficção Distópica
