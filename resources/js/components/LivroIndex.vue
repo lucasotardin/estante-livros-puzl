@@ -76,7 +76,7 @@ export default {
             paginationData: 'paginationData',
             isLoading: 'isLoading',
         }),
-
+        
         livros() {
             return this.livrosFromStore || [];
         },
@@ -98,7 +98,7 @@ export default {
 
     mounted() {
         console.log('Antes de buscar, livros:', this.livros);
-
+        console.log('Livros', this.livrosFromStore);
         // se você ajustar a action pra dar "return", isso aqui funciona:
         this.fetchLivros().then(() => {
             console.log('Depois de buscar, livros:', this.livros);

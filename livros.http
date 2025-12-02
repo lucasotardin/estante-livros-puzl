@@ -7,7 +7,7 @@ POST http://localhost/livros
 Content-Type: application/json
 
 {
-    "nome": "2010",
+    "nome": "A Lenda de Ruff Ghanor",
     "autor": "Leonel Caldela",
     "categoria": "Fantasia Medieval",
     "codigo": "FANTP001",

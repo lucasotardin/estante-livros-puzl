@@ -1,12 +1,12 @@
 // resources/js/store/index.js
-import Vue from 'vue';
+import Vue from 'vue/dist/vue.esm.js';
 import Vuex from 'vuex';
 import axios from 'axios'; // Usaremos Axios para requisições AJAX
 
 Vue.use(Vuex);
 
-// URL base da sua API (como as rotas estão no web.php, não precisamos de /api)
-const API_URL = 'http://localhost/livros';
+// Usa caminho relativo para bater no mesmo host/porta do Laravel (sem prefixo /api)
+const API_URL = '/livros';
 
 export default new Vuex.Store({
     // 1. STATE: Os dados reais da aplicação

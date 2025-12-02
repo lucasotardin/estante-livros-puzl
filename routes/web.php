@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LivroController; 
 
 Route::get('/', function () {
-   dump('Acesse /livros para ver a lista de livros.');
     return view('welcome');
 });
 
