@@ -57,7 +57,7 @@
                             <button class="btn btn-sm btn-warning me-2">
                                 Editar
                             </button>
-                            <button class="btn btn-sm btn-danger">
+                            <button @click="handleDelete(livro.id)" class="btn btn-sm btn-danger">
                                 Apagar
                             </button>
                         </td>
@@ -75,29 +75,23 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
-// 1. IMPORTA O COMPONENTE FORMULÁRIO
 import LivroForm from './LivroForm.vue'; 
 
 export default {
-    // 2. REGISTRA O COMPONENTE
     components: {
         LivroForm, 
     },
-    // 3. ADICIONA O ESTADO showForm
     data() {
         return {
             showForm: false, 
         };
     },
     computed: {
-        // Mapeamento de Getters
         ...mapGetters({
             livrosFromStore: 'allLivros',
             paginationData: 'paginationData',
             isLoading: 'isLoading',
         }),
-        
-        // Lógica de fallback
         livros() {
             return this.livrosFromStore || [];
         },
@@ -113,11 +107,28 @@ export default {
     },
 
     methods: {
-        ...mapActions(['fetchLivros']),
+        // Mapear as Actions existentes e a nova Action 'deleteLivro'
+        ...mapActions(['fetchLivros', 'deleteLivro']), 
+
+        // Lógica de exclusão
+        handleDelete(livroId) {
+            if (!confirm('Tem certeza que deseja apagar este livro? Esta ação é irreversível.')) {
+                return; 
+            }
+
+            // Chama a Action do Vuex para deletar
+            this.deleteLivro(livroId)
+                .then(() => {
+                    alert('Livro apagado com sucesso!');
+                })
+                .catch(error => {
+                    alert('Erro ao apagar o livro. Verifique a API.');
+                    console.error("Erro na exclusão:", error);
+                });
+        }
     },
 
     mounted() {
-        // Inicia a busca dos livros ao carregar o componente
         this.fetchLivros();
     },
 };
@@ -131,11 +142,7 @@ export default {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Fundo escuro semi-transparente */
+    background-color: rgba(0, 0, 0, 0.6); 
     display: flex;
     justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-/* O estilo do card do formulário está no LivroForm.vue */
-</style>
+    align-items
