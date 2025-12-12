@@ -1,12 +1,15 @@
 <template>
     <div class="card shadow-sm mt-4">
+        
         <div
             class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
         >
             <h5 class="mb-0">
                 Painel de Gerenciamento de Livros (Total: {{ totalLivros }})
             </h5>
-            <button class="btn btn-sm btn-success">Adicionar Novo Livro</button>
+            <button @click="showForm = true" class="btn btn-sm btn-success">
+                Adicionar Novo Livro
+            </button>
         </div>
 
         <div class="card-body">
@@ -62,25 +65,42 @@
                 </tbody>
             </table>
         </div>
+        
+        <div v-if="showForm" class="modal-overlay">
+            <LivroForm @close="showForm = false" />
+        </div>
+        
     </div>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
+// 1. IMPORTA O COMPONENTE FORMULÁRIO
+import LivroForm from './LivroForm.vue'; 
 
 export default {
+    // 2. REGISTRA O COMPONENTE
+    components: {
+        LivroForm, 
+    },
+    // 3. ADICIONA O ESTADO showForm
+    data() {
+        return {
+            showForm: false, 
+        };
+    },
     computed: {
-        // mapeia exatamente os getters que você definiu na store
+        // Mapeamento de Getters
         ...mapGetters({
             livrosFromStore: 'allLivros',
             paginationData: 'paginationData',
             isLoading: 'isLoading',
         }),
         
+        // Lógica de fallback
         livros() {
             return this.livrosFromStore || [];
         },
-
         totalLivros() {
             if (
                 this.paginationData &&
@@ -97,19 +117,25 @@ export default {
     },
 
     mounted() {
-        console.log('Antes de buscar, livros:', this.livros);
-        console.log('Livros', this.livrosFromStore);
-        // se você ajustar a action pra dar "return", isso aqui funciona:
-        this.fetchLivros().then(() => {
-            console.log('Depois de buscar, livros:', this.livros);
-        });
-
-        // se não quiser mexer na action, pode deixar só:
-        // this.fetchLivros();
+        // Inicia a busca dos livros ao carregar o componente
+        this.fetchLivros();
     },
 };
 </script>
 
 <style scoped>
-/* Estilos aqui */
+/* Estilos para o Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Fundo escuro semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+/* O estilo do card do formulário está no LivroForm.vue */
 </style>
