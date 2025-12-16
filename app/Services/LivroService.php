@@ -2,7 +2,7 @@
 // app/Services/LivroService.php
 namespace App\Services;
 
-use App\Repositories\LivroRepository;
+use App\Repositories\LivroRepository; // Mantém a injeção de dependência
 
 class LivroService
 {
@@ -14,10 +14,19 @@ class LivroService
     }
 
     // --- MÉTODOS CRUD ---
-    public function getLivrosPaginados()
+
+    /**
+     * Obtém livros paginados, aceitando filtros de busca.
+     * @param array $filters Parâmetros de filtro (nome, categoria, tipo, page)
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function getLivrosPaginados(array $filters = [])
     {
-        return $this->livroRepository->index();
+        // REPASSA O ARRAY DE FILTROS PARA O REPOSITORY
+        return $this->livroRepository->index($filters);
     }
+    
+    // Os demais métodos CRUD permanecem inalterados, pois não precisam de filtros
     public function createLivro(array $data)
     {
         return $this->livroRepository->store($data);
@@ -36,14 +45,21 @@ class LivroService
     }
 
     // --- MÉTODO RELATÓRIO ---
+
+    /**
+     * Processa os dados do repositório para gerar o relatório/dashboard.
+     * @param array $filters Filtros de busca e período para o relatório.
+     * @return array
+     */
     public function getRelatorio(array $filters)
     {
+        // REPASSA OS FILTROS PARA O REPOSITORY
         $dados = $this->livroRepository->getRelatorioData($filters);
         
-        // Formatação dos Dados para Dashboard
+        // Formatação dos Dados para Dashboard (Obrigatório no Service Layer)
         $total_geral = $dados->count();
-        $total_fisico = $dados->where('tipo', 'fisico')->count();
-        $total_digital = $dados->where('tipo', 'digital')->count();
+        $total_fisico = $dados->where('tipo', 'Físico')->count(); // Usar "Físico" e "Digital" conforme o Front-End
+        $total_digital = $dados->where('tipo', 'Digital')->count();
         
         return [
             'total_geral' => $total_geral,
@@ -54,8 +70,8 @@ class LivroService
                 return [
                     'categoria' => $categoria,
                     'count' => $items->count(),
-                    'fisico' => $items->where('tipo', 'fisico')->count(),
-                    'digital' => $items->where('tipo', 'digital')->count(),
+                    'fisico' => $items->where('tipo', 'Físico')->count(),
+                    'digital' => $items->where('tipo', 'Digital')->count(),
                 ];
             })->values(),
         ];

@@ -18,10 +18,11 @@ class LivroController extends Controller
         $this->livroService = $livroService;
     }
 
-    // 1. GET /api/livros (Listar com Paginação)
+    // 1. GET /api/livros (Listar com Paginação E FILTROS)
     public function index(Request $request)
     {
-        $livros = $this->livroService->getLivrosPaginados();
+        // A ÚNICA MUDANÇA: Passar todos os parâmetros da requisição para o Service
+        $livros = $this->livroService->getLivrosPaginados($request->all()); 
         return response()->json($livros);
     }
 
@@ -32,6 +33,8 @@ class LivroController extends Controller
             $livro = $this->livroService->createLivro($request->validated()); 
             return response()->json($livro, Response::HTTP_CREATED); 
         } catch (\Exception $e) {
+            // Log do erro (opcional, mas recomendado)
+            // \Log::error('Erro ao criar livro: ' . $e->getMessage());
             return response()->json(['erro' => 'Erro interno ao salvar.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -40,6 +43,12 @@ class LivroController extends Controller
     public function show(string $id)
     {
         $livro = $this->livroService->getLivroById($id);
+        
+        // Adicionar uma verificação se o livro não foi encontrado (melhor prática)
+        if (!$livro) {
+            return response()->json(['erro' => 'Livro não encontrado.'], Response::HTTP_NOT_FOUND);
+        }
+
         return response()->json($livro);
     }
 
@@ -50,6 +59,7 @@ class LivroController extends Controller
             $livro = $this->livroService->updateLivro($id, $request->validated());
             return response()->json($livro, Response::HTTP_OK); 
         } catch (\Exception $e) {
+            // \Log::error('Erro ao atualizar livro: ' . $e->getMessage());
             return response()->json(['erro' => 'Erro interno ao atualizar.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -57,8 +67,13 @@ class LivroController extends Controller
     // 5. DELETE /api/livros/{id} (Deletar)
     public function destroy(string $id)
     {
-        $this->livroService->deleteLivro($id);
-        return response()->json(null, Response::HTTP_NO_CONTENT); 
+        try {
+            $this->livroService->deleteLivro($id);
+            return response()->json(null, Response::HTTP_NO_CONTENT); 
+        } catch (\Exception $e) {
+             // Retorna 404 se o livro não for encontrado antes de tentar deletar (depende da sua lógica de serviço)
+             return response()->json(['erro' => 'Livro não encontrado ou erro na exclusão.'], Response::HTTP_NOT_FOUND);
+        }
     }
     
     // 6. GET /api/relatorio/livros (Relatório/Dashboard)

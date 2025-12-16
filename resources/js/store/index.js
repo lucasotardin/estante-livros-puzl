@@ -49,61 +49,69 @@ export default new Vuex.Store({
 
     // 4. ACTIONS: Funções assíncronas para CHAMAR a API
     actions: {
-    
-    // Ação para BUSCAR a lista de livros (READ)
-    async fetchLivros({ commit }, page = 1) {
-        commit('SET_LOADING', true);
+        
+        // Ação para BUSCAR a lista de livros (READ) - CORRIGIDA PARA FILTROS
+        async fetchLivros({ commit }, payload = { page: 1, filters: {} }) {
+            commit('SET_LOADING', true);
+            
+            // 1. Desestrutura o payload (contém a página e os filtros)
+            const page = payload.page || 1;
+            const filters = payload.filters || {};
+            
+            // 2. Constrói o Query String
+            let queryString = `?page=${page}`;
+            
+            for (const key in filters) {
+                // Adiciona o parâmetro se o valor do filtro não for vazio
+                if (filters[key]) {
+                    queryString += `&${key}=${filters[key]}`;
+                }
+            }
 
-        try {
-            const response = await axios.get(`${API_URL}?page=${page}`);
-            
-            // Salva a lista de livros
-            commit('SET_LIVROS', response.data.data); 
-            
-            // Salva os dados de paginação (response.data.meta ou response.data)
-            commit('SET_PAGINATION', response.data.meta || response.data); 
+            try {
+                // 3. Usa o queryString completo para a requisição GET
+                const response = await axios.get(`${API_URL}${queryString}`);
+                
+                // Salva a lista de livros
+                commit('SET_LIVROS', response.data.data); 
+                
+                // Salva os dados de paginação
+                commit('SET_PAGINATION', response.data.meta || response.data); 
 
-            return response.data; 
-        } catch (error) {
-            console.error('Erro ao buscar livros:', error);
-            commit('SET_LIVROS', []); 
-            throw error;
-        } finally {
-            commit('SET_LOADING', false);
-        }
-    },
-    
-    // Ação para CRIAR um novo livro (CREATE)
-    async createLivro({ dispatch }, livroData) {
-        try {
-            const response = await axios.post(API_URL, livroData);
-            
-            // Após a criação, obriga a lista a ser atualizada
-            await dispatch('fetchLivros'); 
-            
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao criar livro:', error.response.data);
-            throw error; 
-        }
-    },
-    
-    // Ação para DELETAR um livro (DELETE) - NOVO!
-    async deleteLivro({ dispatch }, id) {
-        try {
-            // Envia a requisição DELETE para a rota /livros/{id}
-            const response = await axios.delete(`${API_URL}/${id}`); 
-            
-            // Após a exclusão, obriga a lista a ser atualizada
-            await dispatch('fetchLivros'); 
-            
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao deletar livro:', error);
-            throw error; 
-        }
-    },
+                return response.data; 
+            } catch (error) {
+                console.error('Erro ao buscar livros:', error);
+                commit('SET_LIVROS', []); 
+                throw error;
+            } finally {
+                commit('SET_LOADING', false);
+            }
+        },
+        
+        // Ação para CRIAR um novo livro (CREATE)
+        async createLivro({ dispatch }, livroData) {
+            try {
+                const response = await axios.post(API_URL, livroData);
+                await dispatch('fetchLivros', {}); // Recarrega a lista sem filtros específicos
+                return response.data;
+            } catch (error) {
+                console.error('Erro ao criar livro:', error.response.data);
+                throw error; 
+            }
+        },
+        
+        // Ação para DELETAR um livro (DELETE)
+        async deleteLivro({ dispatch }, id) {
+            try {
+                const response = await axios.delete(`${API_URL}/${id}`); 
+                await dispatch('fetchLivros', {}); // Recarrega a lista sem filtros específicos
+                return response.data;
+            } catch (error) {
+                console.error('Erro ao deletar livro:', error);
+                throw error; 
+            }
+        },
 
-    // FUTURAS ACTIONS DE UPDATE (EDIÇÃO) VIRÃO AQUI
-}
+        // FUTURAS ACTIONS DE UPDATE (EDIÇÃO) VIRÃO AQUI
+    }
 });

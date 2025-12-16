@@ -12,6 +12,48 @@
             </button>
         </div>
 
+        <div class="card-body border-bottom">
+            <div class="row align-items-end">
+                
+                <div class="col-md-4 mb-2">
+                    <label for="search-nome" class="form-label">Buscar por Nome/Autor</label>
+                    <input 
+                        type="text" 
+                        class="form-control form-control-sm" 
+                        id="search-nome"
+                        v-model="filters.nome" 
+                        placeholder="Nome, Autor ou Palavra-chave..."
+                        @keyup.enter="applyFilters" 
+                    />
+                </div>
+
+                <div class="col-md-3 mb-2">
+                    <label for="search-categoria" class="form-label">Filtrar por Categoria</label>
+                    <select v-model="filters.categoria" class="form-select form-select-sm" id="search-categoria">
+                        <option value="">Todas as Categorias</option>
+                        <option v-for="cat in allCategorias" :key="cat" :value="cat">{{ cat }}</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 mb-2">
+                    <label for="search-tipo" class="form-label">Filtrar por Tipo</label>
+                    <select v-model="filters.tipo" class="form-select form-select-sm" id="search-tipo">
+                        <option value="">Todos os Tipos</option>
+                        <option value="Digital">Digital</option>
+                        <option value="Físico">Físico</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 mb-2 d-flex justify-content-end">
+                    <button @click="applyFilters" class="btn btn-sm btn-primary me-2">
+                        <i class="fas fa-filter"></i> Aplicar
+                    </button>
+                    <button @click="resetFilters" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-undo"></i> Limpar
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="card-body">
             <p v-if="isLoading" class="text-info">
                 Carregando livros... (Aguardando API)
@@ -84,6 +126,12 @@ export default {
     data() {
         return {
             showForm: false, 
+            // NOVO ESTADO: Objeto para armazenar todos os filtros
+            filters: {
+                nome: '',
+                categoria: '',
+                tipo: '',
+            }
         };
     },
     computed: {
@@ -91,6 +139,7 @@ export default {
             livrosFromStore: 'allLivros',
             paginationData: 'paginationData',
             isLoading: 'isLoading',
+            allCategorias: 'allCategorias', // Mapear as categorias para o SELECT
         }),
         livros() {
             return this.livrosFromStore || [];
@@ -107,7 +156,6 @@ export default {
     },
 
     methods: {
-        // Mapear as Actions existentes e a nova Action 'deleteLivro'
         ...mapActions(['fetchLivros', 'deleteLivro']), 
 
         // Lógica de exclusão
@@ -116,7 +164,6 @@ export default {
                 return; 
             }
 
-            // Chama a Action do Vuex para deletar
             this.deleteLivro(livroId)
                 .then(() => {
                     alert('Livro apagado com sucesso!');
@@ -125,11 +172,29 @@ export default {
                     alert('Erro ao apagar o livro. Verifique a API.');
                     console.error("Erro na exclusão:", error);
                 });
-        }
+        },
+        
+        // NOVO MÉTODO: Envia os filtros para a Action do Vuex
+        applyFilters() {
+            // Chama a Action, passando o objeto filters
+            this.fetchLivros({ filters: this.filters }); 
+        },
+        
+        // NOVO MÉTODO: Limpa os filtros e recarrega a lista
+        resetFilters() {
+            this.filters = {
+                nome: '',
+                categoria: '',
+                tipo: '',
+            };
+            // Recarrega a lista sem filtros (passa o objeto vazio)
+            this.fetchLivros({}); 
+        },
     },
 
     mounted() {
-        this.fetchLivros();
+        // Agora, mounted deve chamar fetchLivros com objeto vazio para garantir que o payload seja passado corretamente.
+        this.fetchLivros({}); 
     },
 };
 </script>
@@ -145,4 +210,7 @@ export default {
     background-color: rgba(0, 0, 0, 0.6); 
     display: flex;
     justify-content: center;
-    align-items
+    align-items: center;
+    z-index: 1000;
+}
+</style>
