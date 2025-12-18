@@ -31,7 +31,7 @@ class LivroUpdateRequest extends FormRequest
             'nome'      => 'required|string|max:255',
             'autor'     => 'required|string|max:255',
             'categoria' => 'required|string|max:255',
-            'tipo'      => 'required|in:digital,fisico', 
+            'tipo' => 'required|string|in:Digital,Físico',
             'tamanho'   => 'required|string|max:100',
       // 2. A Regra de Ouro do Update:
             // O 'codigo' deve ser único, MAS deve ignorar o ID do livro

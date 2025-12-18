@@ -1,8 +1,8 @@
 <?php
-// app/Services/LivroService.php
+
 namespace App\Services;
 
-use App\Repositories\LivroRepository; // Mantém a injeção de dependência
+use App\Repositories\LivroRepository;
 
 class LivroService
 {
@@ -13,65 +13,76 @@ class LivroService
         $this->livroRepository = $livroRepository;
     }
 
-    // --- MÉTODOS CRUD ---
+    // --- MÉTODOS CRUD (Essenciais para a lista funcionar) ---
 
-    /**
-     * Obtém livros paginados, aceitando filtros de busca.
-     * @param array $filters Parâmetros de filtro (nome, categoria, tipo, page)
-     * @return \Illuminate\Pagination\LengthAwarePaginator
-     */
     public function getLivrosPaginados(array $filters = [])
     {
-        // REPASSA O ARRAY DE FILTROS PARA O REPOSITORY
         return $this->livroRepository->index($filters);
     }
-    
-    // Os demais métodos CRUD permanecem inalterados, pois não precisam de filtros
+
     public function createLivro(array $data)
     {
         return $this->livroRepository->store($data);
     }
+
     public function getLivroById($id)
     {
         return $this->livroRepository->find($id);
     }
+
     public function updateLivro($id, array $data)
     {
         return $this->livroRepository->update($id, $data);
     }
+
     public function deleteLivro($id)
     {
         return $this->livroRepository->delete($id);
     }
 
-    // --- MÉTODO RELATÓRIO ---
+    // --- MÉTODO RELATÓRIO (A versão robusta que conta certo) ---
 
-    /**
-     * Processa os dados do repositório para gerar o relatório/dashboard.
-     * @param array $filters Filtros de busca e período para o relatório.
-     * @return array
-     */
     public function getRelatorio(array $filters)
     {
-        // REPASSA OS FILTROS PARA O REPOSITORY
+        // 1. Busca os dados brutos do banco
         $dados = $this->livroRepository->getRelatorioData($filters);
         
-        // Formatação dos Dados para Dashboard (Obrigatório no Service Layer)
         $total_geral = $dados->count();
-        $total_fisico = $dados->where('tipo', 'Físico')->count(); // Usar "Físico" e "Digital" conforme o Front-End
-        $total_digital = $dados->where('tipo', 'Digital')->count();
+
+        // 2. CONTAGEM ROBUSTA (Limpa espaços e ignora maiúsculas)
+        
+        // Conta Físicos
+        $total_fisico = $dados->filter(function ($livro) {
+            $tipo = mb_strtolower(trim($livro->tipo)); // Transforma em minúsculo e tira espaços
+            return str_contains($tipo, 'fisic') || str_contains($tipo, 'físic');
+        })->count();
+
+        // Conta Digitais
+        $total_digital = $dados->filter(function ($livro) {
+            $tipo = mb_strtolower(trim($livro->tipo));
+            return $tipo === 'digital' || $tipo === 'arquivo digital';
+        })->count();
         
         return [
             'total_geral' => $total_geral,
             'total_fisico' => $total_fisico,
             'total_digital' => $total_digital,
-            // Detalhes agrupados por categoria
+            
+            // 3. Detalhes (Aplicando a mesma lógica para garantir)
             'detalhes' => $dados->groupBy('categoria')->map(function ($items, $categoria) {
                 return [
                     'categoria' => $categoria,
                     'count' => $items->count(),
-                    'fisico' => $items->where('tipo', 'Físico')->count(),
-                    'digital' => $items->where('tipo', 'Digital')->count(),
+                    
+                    'fisico' => $items->filter(function ($livro) {
+                        $t = mb_strtolower(trim($livro->tipo));
+                        return str_contains($t, 'fisic') || str_contains($t, 'físic');
+                    })->count(),
+                    
+                    'digital' => $items->filter(function ($livro) {
+                        $t = mb_strtolower(trim($livro->tipo));
+                        return $t === 'digital' || $t === 'arquivo digital';
+                    })->count(),
                 ];
             })->values(),
         ];

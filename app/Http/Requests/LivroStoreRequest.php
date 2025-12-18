@@ -14,7 +14,7 @@ class LivroStoreRequest extends FormRequest
             'autor'     => 'required|string|max:255',
             'categoria' => 'required|string|max:255',
             'codigo'    => 'required|string|unique:livros|max:50', // Único
-            'tipo'      => 'required|in:digital,fisico', 
+            'tipo' => 'required|string|in:Digital,Físico',
             'tamanho'   => 'required|string|max:100',
         ];
     }

@@ -66,22 +66,22 @@ class LivroRepository
     
     // RELATÓRIO: Busca dados com filtros
     public function getRelatorioData(array $filters)
-    {
-        $query = Livro::query();
+{
+    $query = Livro::query();
 
-        // 1. Filtragem por Categoria
-        if (isset($filters['categoria'])) {
-            $query->where('categoria', $filters['categoria']);
-        }
-
-        // 2. Filtragem por Período (created_at)
-        if (isset($filters['data_inicio']) && isset($filters['data_fim'])) {
-            $query->whereBetween('created_at', [
-                $filters['data_inicio'],
-                $filters['data_fim'] . ' 23:59:59' // Inclui o dia todo
-            ]);
-        }
-        // Ordena por data de criação para melhor visualização
-        return $query->orderBy('created_at', 'desc')->get(); 
+    // Filtro de Categoria
+    if (!empty($filters['categoria'])) {
+        $query->where('categoria', $filters['categoria']);
     }
+
+    // Filtro de Data (Essencial para o Dashboard)
+    if (!empty($filters['data_inicio']) && !empty($filters['data_fim'])) {
+        $query->whereBetween('created_at', [
+            $filters['data_inicio'] . ' 00:00:00', // Começo do dia
+            $filters['data_fim'] . ' 23:59:59'     // Fim do dia
+        ]);
+    }
+
+    return $query->orderBy('created_at', 'desc')->get();
+}
 }
